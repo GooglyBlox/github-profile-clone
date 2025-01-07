@@ -1,6 +1,6 @@
 # GitHub Profile Clone
 
-A visual recreation of GitHub's user profile page (with some additional creative liberty) built with Next.js 15, TypeScript, and Tailwind CSS.
+A slightly modified visual recreation of GitHub's user profile page (with some additional creative liberty) built with Next.js 15, TypeScript, and Tailwind CSS.
 
 ## Setup
 
