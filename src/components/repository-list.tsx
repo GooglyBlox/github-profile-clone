@@ -277,43 +277,45 @@ export function RepositoryList({
         {filteredRepos.map((repo) => (
           <div key={repo.id} className="pb-6 border-b border-gray-800">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3">
-                  <a
-                    href={repo.html_url}
-                    className="text-blue-400 hover:underline font-semibold"
-                  >
-                    {repo.name}
-                  </a>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "rounded-full px-2 py-0.5 border",
-                      repo.archived
-                        ? "text-[#d29922] border-[#533d12] bg-transparent"
-                        : repo.private
-                        ? "text-[#d29922] border-[#533d12] bg-transparent"
-                        : "text-[#9198a1] border-[#3d444d] bg-transparent"
-                    )}
-                  >
-                    {repo.archived
-                      ? "Public archive"
-                      : repo.private
-                      ? "Private"
-                      : "Public"}
-                  </Badge>
-                </div>
-                {repo.fork && repo.parent && (
-                  <div className="text-xs text-gray-400">
-                    Forked from{" "}
+              <div className="flex-1 space-y-2">
+                <div>
+                  <div className="flex items-center gap-3">
                     <a
-                      href={repo.parent.html_url}
-                      className="text-gray-400 hover:text-blue-400 hover:underline"
+                      href={repo.html_url}
+                      className="text-blue-400 hover:underline font-semibold"
                     >
-                      {repo.parent.full_name}
+                      {repo.name}
                     </a>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded-full px-2 py-0.5 border",
+                        repo.archived
+                          ? "text-[#d29922] border-[#533d12] bg-transparent"
+                          : repo.private
+                          ? "text-[#d29922] border-[#533d12] bg-transparent"
+                          : "text-[#9198a1] border-[#3d444d] bg-transparent"
+                      )}
+                    >
+                      {repo.archived
+                        ? "Public archive"
+                        : repo.private
+                        ? "Private"
+                        : "Public"}
+                    </Badge>
                   </div>
-                )}
+                  {repo.fork && repo.parent && (
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      Forked from{" "}
+                      <a
+                        href={repo.parent.html_url}
+                        className="text-gray-400 hover:text-blue-400 hover:underline"
+                      >
+                        {repo.parent.full_name}
+                      </a>
+                    </div>
+                  )}
+                </div>
                 {repo.description && (
                   <div className="text-sm text-gray-400">
                     {repo.description}
