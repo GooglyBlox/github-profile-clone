@@ -7,6 +7,7 @@ import { Star, X } from "lucide-react";
 import { Dropdown } from "@/components/ui/dropdown";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Repository {
   id: number;
@@ -55,7 +56,7 @@ interface RepositoryListProps {
 
 export function RepositoryList({
   isPrivateEnabled,
-  searchQuery,
+  searchQuery: initialSearchQuery,
 }: RepositoryListProps) {
   const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +67,12 @@ export function RepositoryList({
   const [languages, setLanguages] = useState<string[]>(["all"]);
   const [languageColors, setLanguageColors] = useState<LanguageColors>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const ITEMS_PER_PAGE = 30;
+
+  useEffect(() => {
+    setSearchQuery(initialSearchQuery);
+  }, [initialSearchQuery]);
 
   useEffect(() => {
     async function fetchRepositories() {
@@ -229,6 +235,16 @@ export function RepositoryList({
     }
   }
 
+  const hasNonDefaultFilters = (
+    filterType: string,
+    filterLanguage: string,
+    sortBy: string
+  ) => {
+    return (
+      filterType !== "all" || filterLanguage !== "all" || sortBy !== "updated"
+    );
+  };
+
   if (loading) {
     return <div className="text-center">Loading repositories...</div>;
   }
@@ -253,10 +269,10 @@ export function RepositoryList({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-gray-400 pb-2 border-b border-gray-800">
-        <div className="flex items-center gap-3 mb-4 md:mb-0">
+      <div className="flex flex-col md:flex-row md:items-center gap-4 text-sm text-gray-400 border-b border-gray-800 pb-3">
+        <div className="md:hidden flex items-center justify-between w-full">
           <span>{filteredRepos.length} results</span>
-          {hasActiveFilters && (
+          {hasNonDefaultFilters(filterType, filterLanguage, sortBy) && (
             <button
               onClick={() => {
                 setFilterType("all");
@@ -269,40 +285,75 @@ export function RepositoryList({
             </button>
           )}
         </div>
-        <div className="flex flex-wrap md:flex-nowrap items-center gap-3">
-          <Dropdown
-            label="Type"
-            options={[
-              "all",
-              "public",
-              "private",
-              "sources",
-              "forks",
-              "archived",
-              "can be sponsored",
-              "mirrors",
-              "templates",
-            ]}
-            value={filterType}
-            onChange={setFilterType}
-            buttonClassName="border-gray-600 text-gray-300 hover:border-white hover:text-white bg-[#21262d] hover:bg-[#30363d]"
-          />
-          <Dropdown
-            label="Language"
-            options={languages}
-            value={filterLanguage}
-            onChange={setFilterLanguage}
-            buttonClassName="border-gray-600 text-gray-300 hover:border-white hover:text-white bg-[#21262d] hover:bg-[#30363d]"
-          />
-          <Dropdown
-            label="Sort"
-            options={["updated", "name", "stars"]}
-            value={sortBy}
-            onChange={setSortBy}
-            buttonClassName="border-gray-600 text-gray-300 hover:border-white hover:text-white bg-[#21262d] hover:bg-[#30363d]"
-          />
+
+        <div className="flex-1 flex flex-wrap md:flex-nowrap items-center gap-3">
+          <div className="w-full ">
+            <Input
+              placeholder="Find a repository..."
+              className="bg-[#0d1117] border-gray-800 focus:border-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-3">
+            <Dropdown
+              label="Type"
+              options={[
+                "all",
+                "public",
+                "private",
+                "sources",
+                "forks",
+                "archived",
+                "can be sponsored",
+                "mirrors",
+                "templates",
+              ]}
+              value={filterType}
+              onChange={setFilterType}
+              buttonClassName="border-gray-600 text-gray-300 hover:border-white hover:text-white bg-[#21262d] hover:bg-[#30363d]"
+            />
+            <Dropdown
+              label="Language"
+              options={languages}
+              value={filterLanguage}
+              onChange={setFilterLanguage}
+              buttonClassName="border-gray-600 text-gray-300 hover:border-white hover:text-white bg-[#21262d] hover:bg-[#30363d]"
+            />
+            <Dropdown
+              label="Sort"
+              options={["updated", "name", "stars"]}
+              value={sortBy}
+              onChange={setSortBy}
+              buttonClassName="border-gray-600 text-gray-300 hover:border-white hover:text-white bg-[#21262d] hover:bg-[#30363d]"
+            />
+          </div>
         </div>
       </div>
+
+      {hasNonDefaultFilters(filterType, filterLanguage, sortBy) && (
+        <div className="hidden md:flex items-center justify-between border rounded-md px-4 py-3 bg-[#161b22] border-[#30363d]">
+          <div className="text-sm">
+            <span className="text-gray-200">{filteredRepos.length}</span>
+            <span className="text-gray-400"> results for </span>
+            <span className="text-gray-200">
+              {filterType === "all" ? "public" : filterType}
+            </span>
+            <span className="text-gray-400"> repositories sorted by </span>
+            <span className="text-gray-200">{sortBy}</span>
+          </div>
+          <button
+            onClick={() => {
+              setFilterType("all");
+              setFilterLanguage("all");
+              setSortBy("updated");
+            }}
+            className="text-gray-400 hover:text-white inline-flex items-center gap-2 px-2 py-1 rounded-md hover:bg-[#21262d] transition-colors duration-150"
+          >
+            <X className="h-4 w-4" /> Clear filter
+          </button>
+        </div>
+      )}
 
       <div className="space-y-6">
         {paginatedRepos.map((repo) => (
