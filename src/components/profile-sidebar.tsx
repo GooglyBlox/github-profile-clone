@@ -36,10 +36,21 @@ export function ProfileSidebar({ isPrivateEnabled }: ProfileSidebarProps) {
   useEffect(() => {
     async function fetchGitHubUser() {
       try {
-        const response = await fetch("/api/github?endpoint=/user");
+        const privateResponse = await fetch("/api/github?endpoint=/user");
 
-        if (response.ok) {
-          const data = await response.json();
+        if (privateResponse.ok) {
+          const data = await privateResponse.json();
+          setUser(data);
+          return;
+        }
+
+        const publicResponse = await fetch(
+          "/api/github?endpoint=/users/" +
+            process.env.NEXT_PUBLIC_GITHUB_USERNAME
+        );
+
+        if (publicResponse.ok) {
+          const data = await publicResponse.json();
           setUser(data);
         } else {
           setError("Failed to fetch GitHub user data");

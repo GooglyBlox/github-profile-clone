@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   if (!apiKey && !username) {
     return NextResponse.json(
-      { error: "GitHub credentials not configured" },
+      { error: "No GitHub credentials configured" },
       { status: 500 }
     );
   }
@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
       ...(apiKey && { Authorization: `token ${apiKey}` }),
     };
 
-    const response = await fetch(`${GITHUB_API_BASE}${endpoint}`, { headers });
+    const finalEndpoint =
+      !apiKey && username
+        ? endpoint.replace("/user/", `/users/${username}/`)
+        : endpoint;
+
+    const response = await fetch(`${GITHUB_API_BASE}${finalEndpoint}`, {
+      headers,
+    });
     const data = await response.json();
 
     if (!response.ok) {

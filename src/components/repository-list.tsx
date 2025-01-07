@@ -71,41 +71,54 @@ export function RepositoryList({
   useEffect(() => {
     async function fetchRepositories() {
       try {
-        const userResponse = await fetch('/api/github?endpoint=/user');
-        if (!userResponse.ok) {
-          setError('Failed to fetch user data');
-          return;
+        const userResponse = await fetch("/api/github?endpoint=/user");
+        const hasApiKey = userResponse.ok;
+        let currentUsername = "";
+
+        if (hasApiKey) {
+          const userData = await userResponse.json();
+          currentUsername = userData.login;
         }
-        const userData = await userResponse.json();
-        const currentUsername = userData.login;
-    
-        const reposResponse = await fetch('/api/github?endpoint=/user/repos?per_page=100');
-        
+
+        const reposEndpoint = hasApiKey
+          ? "/user/repos?per_page=100"
+          : "/user/repos?per_page=100&type=public";
+
+        const reposResponse = await fetch(
+          `/api/github?endpoint=${reposEndpoint}`
+        );
+
         if (reposResponse.ok) {
           const data: Repository[] = await reposResponse.json();
-    
-          const reposWithParents = await Promise.all(
-            data.map(async (repo) => {
-              if (repo.fork) {
-                const repoDetailResponse = await fetch(
-                  `/api/github?endpoint=/repos/${repo.owner.login}/${repo.name}`
-                );
-                if (repoDetailResponse.ok) {
-                  const detailData = await repoDetailResponse.json();
-                  return { ...repo, parent: detailData.parent };
-                }
-              }
-              return repo;
-            })
-          );
-    
-          const filteredRepos = reposWithParents.filter(repo => 
-            repo.owner.login.toLowerCase() === currentUsername.toLowerCase() || 
-            repo.permissions?.admin === true
-          );
-    
+
+          const reposWithParents = hasApiKey
+            ? await Promise.all(
+                data.map(async (repo) => {
+                  if (repo.fork) {
+                    const repoDetailResponse = await fetch(
+                      `/api/github?endpoint=/repos/${repo.owner.login}/${repo.name}`
+                    );
+                    if (repoDetailResponse.ok) {
+                      const detailData = await repoDetailResponse.json();
+                      return { ...repo, parent: detailData.parent };
+                    }
+                  }
+                  return repo;
+                })
+              )
+            : data;
+
+          const filteredRepos = hasApiKey
+            ? reposWithParents.filter(
+                (repo) =>
+                  repo.owner.login.toLowerCase() ===
+                    currentUsername.toLowerCase() ||
+                  repo.permissions?.admin === true
+              )
+            : reposWithParents.filter((repo) => !repo.private);
+
           setRepos(filteredRepos);
-    
+
           const uniqueLanguages = [
             "all",
             ...new Set(
@@ -116,10 +129,10 @@ export function RepositoryList({
           ];
           setLanguages(uniqueLanguages);
         } else {
-          setError('Failed to fetch repositories');
+          setError("Failed to fetch repositories");
         }
       } catch (error) {
-        setError('Error fetching repositories');
+        setError("Error fetching repositories");
       } finally {
         setLoading(false);
       }
