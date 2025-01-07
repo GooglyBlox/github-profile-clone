@@ -35,26 +35,8 @@ export function ProfileSidebar({ isPrivateEnabled }: ProfileSidebarProps) {
 
   useEffect(() => {
     async function fetchGitHubUser() {
-      const apiKey = process.env.NEXT_PUBLIC_GITHUB_API_KEY;
-      const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME;
-
-      if (!apiKey && !username) {
-        setError("GitHub credentials not found");
-        setLoading(false);
-        return;
-      }
-
       try {
-        const headers: HeadersInit = {
-          Accept: "application/vnd.github.v3+json",
-          ...(apiKey && { Authorization: `token ${apiKey}` }),
-        };
-
-        const endpoint = apiKey
-          ? "https://api.github.com/user"
-          : `https://api.github.com/users/${username}`;
-
-        const response = await fetch(endpoint, { headers });
+        const response = await fetch("/api/github?endpoint=/user");
 
         if (response.ok) {
           const data = await response.json();

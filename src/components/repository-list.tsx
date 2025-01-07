@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface Repository {
   id: number;
   name: string;
+  full_name: string;
   description: string;
   private: boolean;
   topics: string[];
@@ -24,6 +25,16 @@ interface Repository {
   is_template: boolean;
   mirror_url: string | null;
   sponsorship: { is_sponsored: boolean } | null;
+  permissions?: {
+    admin: boolean;
+    maintain: boolean;
+    push: boolean;
+    triage: boolean;
+    pull: boolean;
+  };
+  owner: {
+    login: string;
+  };
   parent?: {
     full_name: string;
     html_url: string;
@@ -59,36 +70,25 @@ export function RepositoryList({
 
   useEffect(() => {
     async function fetchRepositories() {
-      const apiKey = process.env.NEXT_PUBLIC_GITHUB_API_KEY;
-      const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME;
-
-      if (!apiKey && !username) {
-        setError("GitHub credentials not found");
-        setLoading(false);
-        return;
-      }
-
       try {
-        const headers: HeadersInit = {
-          Accept: "application/vnd.github.v3+json",
-          ...(apiKey && { Authorization: `token ${apiKey}` }),
-        };
-
-        const endpoint = apiKey
-          ? `https://api.github.com/user/repos?per_page=100&affiliation=owner`
-          : `https://api.github.com/users/${username}/repos?per_page=100`;
-
-        const response = await fetch(endpoint, { headers });
-
-        if (response.ok) {
-          const data: Repository[] = await response.json();
-
+        const userResponse = await fetch('/api/github?endpoint=/user');
+        if (!userResponse.ok) {
+          setError('Failed to fetch user data');
+          return;
+        }
+        const userData = await userResponse.json();
+        const currentUsername = userData.login;
+    
+        const reposResponse = await fetch('/api/github?endpoint=/user/repos?per_page=100');
+        
+        if (reposResponse.ok) {
+          const data: Repository[] = await reposResponse.json();
+    
           const reposWithParents = await Promise.all(
             data.map(async (repo) => {
               if (repo.fork) {
                 const repoDetailResponse = await fetch(
-                  `https://api.github.com/repos/${username}/${repo.name}`,
-                  { headers }
+                  `/api/github?endpoint=/repos/${repo.owner.login}/${repo.name}`
                 );
                 if (repoDetailResponse.ok) {
                   const detailData = await repoDetailResponse.json();
@@ -98,23 +98,28 @@ export function RepositoryList({
               return repo;
             })
           );
-
-          setRepos(reposWithParents);
-
+    
+          const filteredRepos = reposWithParents.filter(repo => 
+            repo.owner.login.toLowerCase() === currentUsername.toLowerCase() || 
+            repo.permissions?.admin === true
+          );
+    
+          setRepos(filteredRepos);
+    
           const uniqueLanguages = [
             "all",
             ...new Set(
-              data
+              filteredRepos
                 .map((repo) => repo.language)
                 .filter((lang): lang is string => lang !== null)
             ),
           ];
           setLanguages(uniqueLanguages);
         } else {
-          setError("Failed to fetch repositories");
+          setError('Failed to fetch repositories');
         }
       } catch (error) {
-        setError("Error fetching repositories");
+        setError('Error fetching repositories');
       } finally {
         setLoading(false);
       }
@@ -392,33 +397,33 @@ export function RepositoryList({
         ))}
       </div>
       {filteredRepos.length > ITEMS_PER_PAGE && (
-  <div className="mt-6 flex items-center justify-center gap-4">
-    {currentPage !== 1 ? (
-      <button
-        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-        className="text-[#4493f8] border border-transparent hover:border-[#30363d] rounded-md px-3 py-2 text-sm transition-colors inline-flex items-center gap-1"
-      >
-        <ChevronLeft className="h-4 w-4" /> Previous
-      </button>
-    ) : (
-      <span className="text-[#484f58] px-3 py-2 text-sm cursor-default inline-flex items-center gap-1">
-        <ChevronLeft className="h-4 w-4" /> Previous
-      </span>
-    )}
-    {currentPage !== totalPages ? (
-      <button
-        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-        className="text-[#4493f8] border border-transparent hover:border-[#30363d] rounded-md px-3 py-2 text-sm transition-colors inline-flex items-center gap-1"
-      >
-        Next <ChevronRight className="h-4 w-4" />
-      </button>
-    ) : (
-      <span className="text-[#484f58] px-3 py-2 text-sm cursor-default inline-flex items-center gap-1">
-        Next <ChevronRight className="h-4 w-4" />
-      </span>
-    )}
-  </div>
-)}
+        <div className="mt-6 flex items-center justify-center gap-4">
+          {currentPage !== 1 ? (
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="text-[#4493f8] border border-transparent hover:border-[#30363d] rounded-md px-3 py-2 text-sm transition-colors inline-flex items-center gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </button>
+          ) : (
+            <span className="text-[#484f58] px-3 py-2 text-sm cursor-default inline-flex items-center gap-1">
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </span>
+          )}
+          {currentPage !== totalPages ? (
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="text-[#4493f8] border border-transparent hover:border-[#30363d] rounded-md px-3 py-2 text-sm transition-colors inline-flex items-center gap-1"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <span className="text-[#484f58] px-3 py-2 text-sm cursor-default inline-flex items-center gap-1">
+              Next <ChevronRight className="h-4 w-4" />
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

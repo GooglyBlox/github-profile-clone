@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -11,20 +12,43 @@ export function GitHubProfileClient() {
   );
   const [credentialsChecked, setCredentialsChecked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GITHUB_API_KEY;
+    async function checkGitHubAccess() {
+      try {
+        const response = await fetch("/api/github?endpoint=/user");
+        setIsPrivateEnabled(response.ok);
+      } catch (error) {
+        setIsPrivateEnabled(false);
+        setError("Failed to check GitHub access");
+      } finally {
+        setCredentialsChecked(true);
+      }
+    }
 
-    setIsPrivateEnabled(!!apiKey);
-    setCredentialsChecked(true);
+    checkGitHubAccess();
   }, []);
 
   if (!credentialsChecked) {
-    return null;
+    return (
+      <div className="min-h-screen bg-[#0d1117] text-gray-300 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
-  const hasCredentials =
-    isPrivateEnabled || process.env.NEXT_PUBLIC_GITHUB_USERNAME;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#0d1117] text-gray-300 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-gray-300">
@@ -40,7 +64,7 @@ export function GitHubProfileClient() {
       </div>
 
       <div className="max-w-6xl mx-auto py-8 px-6">
-        {hasCredentials ? (
+        {isPrivateEnabled !== null ? (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <ProfileSidebar isPrivateEnabled={!!isPrivateEnabled} />
             <div className="md:col-span-3">
@@ -61,9 +85,8 @@ export function GitHubProfileClient() {
         ) : (
           <div className="text-center py-12">
             <p className="text-xl text-gray-400">
-              GitHub credentials not found. Please set either
-              NEXT_PUBLIC_GITHUB_API_KEY for full access or
-              NEXT_PUBLIC_GITHUB_USERNAME for public access.
+              Unable to access GitHub API. Please check your server
+              configuration.
             </p>
           </div>
         )}
