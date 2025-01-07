@@ -222,8 +222,8 @@ export function RepositoryList({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between text-sm text-gray-400 pb-2 border-b border-gray-800">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between text-sm text-gray-400 pb-2 border-b border-gray-800">
+        <div className="flex items-center gap-3 mb-4 md:mb-0">
           <span>{filteredRepos.length} results</span>
           {hasActiveFilters && (
             <button
@@ -238,7 +238,7 @@ export function RepositoryList({
             </button>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap md:flex-nowrap items-center gap-3">
           <Dropdown
             label="Type"
             options={[

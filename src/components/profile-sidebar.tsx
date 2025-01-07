@@ -98,26 +98,39 @@ export function ProfileSidebar({ isPrivateEnabled }: ProfileSidebarProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {user && (
         <>
-          <div className="relative h-[260px] w-[260px]">
-            <Image
-              src={user.avatar_url}
-              alt="Profile"
-              width={260}
-              height={260}
-              className="rounded-full"
-            />
+          <div className="flex md:block items-start gap-4">
+            <div className="relative h-20 w-20 flex-shrink-0 md:h-[260px] md:w-[260px]">
+              <Image
+                src={user.avatar_url}
+                alt="Profile"
+                width={260}
+                height={260}
+                className="rounded-full h-full w-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0 md:mt-4">
+              <div className="space-y-1">
+                <h1 className="text-xl md:text-2xl font-semibold text-white truncate">
+                  {user.name}
+                </h1>
+                <p className="text-lg md:text-xl text-gray-400 truncate">
+                  {user.login}
+                </p>
+              </div>
+              <div className="md:hidden mt-2">
+                <p className="text-gray-300 text-sm md:text-base">{user.bio}</p>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-white">{user.name}</h1>
-            <p className="text-xl text-gray-400">{user.login}</p>
-          </div>
-          <div className="pt-2">
+
+          <div className="hidden md:block">
             <p className="text-gray-300 text-base">{user.bio}</p>
           </div>
-          <div className="flex items-center gap-2 pt-1">
+
+          <div className="hidden md:flex md:items-center md:gap-2">
             <svg
               aria-hidden="true"
               height="16"
@@ -138,7 +151,8 @@ export function ProfileSidebar({ isPrivateEnabled }: ProfileSidebarProps) {
               <span className="text-gray-400"> following</span>
             </span>
           </div>
-          <div className="space-y-3 pt-1">
+
+          <div className="space-y-3">
             {user.location && (
               <div className="flex items-center gap-2">
                 <svg
@@ -192,14 +206,13 @@ export function ProfileSidebar({ isPrivateEnabled }: ProfileSidebarProps) {
                 </svg>
                 <a
                   href={user.blog}
-                  className="text-sm text-blue-400 hover:underline"
+                  className="text-sm text-blue-400 hover:underline truncate"
                 >
                   {user.blog}
                 </a>
               </div>
             )}
             {user.twitter_username && (
-              // yes the bird is intentional
               <div className="flex items-center gap-2">
                 <svg
                   aria-hidden="true"
@@ -222,6 +235,28 @@ export function ProfileSidebar({ isPrivateEnabled }: ProfileSidebarProps) {
                 </a>
               </div>
             )}
+          </div>
+
+          <div className="md:hidden flex items-center gap-2">
+            <svg
+              aria-hidden="true"
+              height="16"
+              viewBox="0 0 16 16"
+              version="1.1"
+              width="16"
+              className="text-[#9198a1]"
+            >
+              <path
+                fill="currentColor"
+                d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"
+              />
+            </svg>
+            <span className="text-sm">
+              <span className="text-white">{user.followers}</span>
+              <span className="text-gray-400"> followers</span> ·&nbsp;
+              <span className="text-white">{user.following}</span>
+              <span className="text-gray-400"> following</span>
+            </span>
           </div>
         </>
       )}

@@ -28,7 +28,7 @@ export function GitHubProfileClient() {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-gray-300">
-      <div className="border-b border-gray-800 py-4">
+      <div className="border-b border-gray-800 py-4 hidden md:block">
         <div className="max-w-6xl mx-auto px-6">
           <Input
             placeholder="Find a repository..."
@@ -44,6 +44,14 @@ export function GitHubProfileClient() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <ProfileSidebar isPrivateEnabled={!!isPrivateEnabled} />
             <div className="md:col-span-3">
+              <div className="md:hidden mb-6">
+                <Input
+                  placeholder="Find a repository..."
+                  className="bg-[#0d1117] border-gray-800 focus:border-blue-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
               <RepositoryList
                 isPrivateEnabled={!!isPrivateEnabled}
                 searchQuery={searchQuery}
