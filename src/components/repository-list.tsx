@@ -97,22 +97,20 @@ export function RepositoryList({
         if (reposResponse.ok) {
           const data: Repository[] = await reposResponse.json();
 
-          const reposWithParents = hasApiKey
-            ? await Promise.all(
-                data.map(async (repo) => {
-                  if (repo.fork) {
-                    const repoDetailResponse = await fetch(
-                      `/api/github?endpoint=/repos/${repo.owner.login}/${repo.name}`
-                    );
-                    if (repoDetailResponse.ok) {
-                      const detailData = await repoDetailResponse.json();
-                      return { ...repo, parent: detailData.parent };
-                    }
-                  }
-                  return repo;
-                })
-              )
-            : data;
+          const reposWithParents = await Promise.all(
+            data.map(async (repo) => {
+              if (repo.fork) {
+                const repoDetailResponse = await fetch(
+                  `/api/github?endpoint=/repos/${repo.owner.login}/${repo.name}`
+                );
+                if (repoDetailResponse.ok) {
+                  const detailData = await repoDetailResponse.json();
+                  return { ...repo, parent: detailData.parent };
+                }
+              }
+              return repo;
+            })
+          );
 
           const filteredRepos = hasApiKey
             ? reposWithParents.filter(
