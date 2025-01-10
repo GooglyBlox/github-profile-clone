@@ -43,6 +43,7 @@ A slightly modified visual recreation of GitHub's user profile page (with some a
 - View public repositories
 - Basic public profile information
 - Limited repository statistics
+- Heavy usage-limit restrictions (ratelimited after ~60 API calls an hour)
 
 ## License
 
